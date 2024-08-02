@@ -4,9 +4,11 @@ import os
 import time
 import uuid
 from typing import Generator, Optional
+from typing import List, Optional, Dict, Any, Union
 
 import tiktoken
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -42,18 +44,37 @@ llm = ChatOpenAI(
 )
 
 text_embedder = OpenAIEmbedding(
-    api_key=settings.api_key,
+    api_key=settings.embedding_api_key,
     api_base=settings.embedding_api_base,
     api_type=OpenaiApiType.OpenAI,
     model=settings.embedding_model,
     max_retries=settings.max_retries,
 )
 
-token_encoder = tiktoken.get_encoding("cl100k_base")
+# token_encoder = tiktoken.get_encoding("cl100k_base")
+token_encoder = tiktoken.get_encoding("o200k_base")
 
 local_search: LocalSearch
 global_search: GlobalSearch
 question_gen: LocalQuestionGen
+
+class Message(BaseModel):
+    role: str
+    content: str
+
+class ChatCompletionResponseChoice(BaseModel):
+    index: int
+    message: Message
+    finish_reason: Optional[str] = None
+
+class ChatCompletionResponse(BaseModel):
+    id: str = Field(default_factory=lambda: f"chatcmpl-{uuid.uuid4().hex}")
+    object: str = "chat.completion"
+    created: int = Field(default_factory=lambda: int(time.time()))
+    model: str
+    choices: List[ChatCompletionResponseChoice]
+    usage: CompletionUsage
+    system_fingerprint: Optional[str] = None
 
 
 class CustomSearchCallback(GlobalSearchLLMCallback):
@@ -199,10 +220,10 @@ async def chat_completions(request: gtypes.ChatCompletionRequest):
                 model=request.model,
                 object="chat.completion",
                 choices=[
-                    Choice(
+                    ChatCompletionResponseChoice(
                         index=0,
                         finish_reason="stop",
-                        message=ChatCompletionMessage(
+                        message=Message(
                             role="assistant",
                             content=response
                         )

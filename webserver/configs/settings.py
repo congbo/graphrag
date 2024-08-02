@@ -1,25 +1,21 @@
-import os
-
-from pydantic_settings import BaseSettings
-
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     server_host: str = "http://localhost"
     server_port: int = 20213
-    data: str = (
-        "./output"
-    )
+    data: str = "./output"
     lancedb_uri: str = (
         "./lancedb"
     )
-    api_key: str = os.environ.get("DEEP_SEEK_API_KEY")
-    api_base: str = "https://api.deepseek.com/v1"
+    api_key: str = ""
+    api_base: str = ""
     api_version: str = ""
     api_type: str = ""
-    llm_model: str = "deepseek-chat"
+    llm_model: str = ""
     max_retries: int = 3
-    embedding_model: str = "text-embedding-ada-002"
-    embedding_api_base: str = "http://localhost:1234/v1"
+    embedding_model: str = ""
+    embedding_api_base: str = ""
+    embedding_api_key: str = ""
     max_tokens: int = 4096
     temperature: float = 0.0
     top_p: float = 1.0
@@ -27,5 +23,6 @@ class Settings(BaseSettings):
     presence_penalty: float = 0.0
     stop: list[str] | None = None
 
+    model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()

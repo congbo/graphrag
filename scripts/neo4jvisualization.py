@@ -1,18 +1,24 @@
+"""
+[喂饭教程！全网首发Neo4J可视化GraphRAG索引](https://mp.weixin.qq.com/s/0niNzA_ZG_L81Ah_PAflLg)
+"""
 import os
 import time
 
 import pandas as pd
 from neo4j import GraphDatabase
 
-NEO4J_URI = "neo4j://localhost"  # or neo4j+s://xxxx.databases.neo4j.io
+# NEO4J_URI = "neo4j://localhost"  # or neo4j+s://xxxx.databases.neo4j.io
+NEO4J_URI = "neo4j://localhost:7687"  # or neo4j+s://xxxx.databases.neo4j.io
 NEO4J_USERNAME = "neo4j"
-NEO4J_PASSWORD = "password"
-NEO4J_DATABASE = "neo4j"
+NEO4J_PASSWORD = "Aptech2!"
+#NEO4J_DATABASE = "neo4j"
+NEO4J_DATABASE = "global-policy"
 
 # Create a Neo4j driver
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 
-GRAPHRAG_FOLDER = os.path.join(".", "output", "20240728-152325", "artifacts")
+#GRAPHRAG_FOLDER = os.environ.get("INPUT_DIR")
+GRAPHRAG_FOLDER = os.path.join(".", "artifacts")
 
 
 def batched_import(statement, df, batch_size=1000):

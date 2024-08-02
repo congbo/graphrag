@@ -184,6 +184,10 @@ class GlobalSearch(BaseSearch):
                 search_response = await self.llm.agenerate(
                     messages=search_messages, streaming=False, **llm_kwargs
                 )
+                if len(search_response) < 3:
+                    log.info("search_prompt: \n%s", search_prompt)
+                    log.info("query: \n%s", query)
+                    print(f"{len(search_prompt)} {len(query)}")
                 log.info("Map response: %s", search_response)
             try:
                 # parse search response json
@@ -194,7 +198,8 @@ class GlobalSearch(BaseSearch):
                     # parse search response json
                     processed_response = self.parse_search_response(search_response)
                 except ValueError:
-                    log.exception("Error parsing search response json")
+                    # log.exception("Error parsing search response json")
+                    log.exception(f"Error parsing search response json: {search_response}")
                     processed_response = []
 
             return SearchResult(
@@ -207,7 +212,7 @@ class GlobalSearch(BaseSearch):
             )
 
         except Exception:
-            log.exception("Exception in _map_response_single_batch")
+            log.exception(f"Exception in _map_response_single_batch: {search_response}")
             return SearchResult(
                 response=[{"answer": "", "score": 0}],
                 context_data=context_data,
