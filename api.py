@@ -34,6 +34,7 @@ from graphrag.query.structured_search.global_search.community_context import Glo
 from graphrag.query.structured_search.global_search.search import GlobalSearch
 from graphrag.vector_stores.lancedb import LanceDBVectorStore
 from graphrag.query.structured_search.base import SearchResult
+from graphrag.query.context_builder.conversation_history import ConversationHistory
 
 # 加载 .env 到环境变量
 from dotenv import load_dotenv, find_dotenv
@@ -121,8 +122,8 @@ async def setup_llm_and_embedder():
 
     # 检查API密钥是否存在
     if api_key == "YOUR_API_KEY":
-        logger.error("环境变量中未找到有效的GRAPHRAG_API_KEY")
-        raise ValueError("GRAPHRAG_API_KEY未正确设置")
+        logger.error("环境变量中未找到有效的 GRAPHRAG_LLM_API_KEY")
+        raise ValueError("GRAPHRAG_LLM_API_KEY 未正确设置")
 
     # 初始化ChatOpenAI实例
     llm = ChatOpenAI(
@@ -356,13 +357,16 @@ async def chat_completions(request: ChatCompletionRequest):
     try:
         logger.info(f"收到聊天完成请求: {request}")
         prompt = request.messages[-1].content
-        logger.info(f"处理提示: {prompt}")
+        history = request.messages[:-1]
+        message_dicts = [message.dict() for message in history]
+        conversation_history = ConversationHistory.from_list(message_dicts)
+        logger.info(f"处理提示: {prompt=} {message_dicts=}")
 
         # 根据模型选择使用不同的搜索方法
         if "global" in request.model:
-            result: SearchResult = await global_search_engine.asearch(prompt, streaming=request.stream)
+            result: SearchResult = await global_search_engine.asearch(prompt, conversation_history=conversation_history, streaming=request.stream)
         else:  # 默认使用本地搜索
-            result: SearchResult = await local_search_engine.asearch(prompt, streaming=request.stream)
+            result: SearchResult = await local_search_engine.asearch(prompt, conversation_history=conversation_history, streaming=request.stream)
 
         stream = result.response
         # formatted_response = format_response(result.response)
