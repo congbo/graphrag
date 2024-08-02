@@ -110,9 +110,9 @@ async def setup_llm_and_embedder():
     logger.info("正在设置LLM和嵌入器")
 
     # 获取API密钥和基础URL
-    api_key = os.environ.get("GRAPHRAG_API_KEY", "YOUR_API_KEY")
+    api_key = os.environ.get("GRAPHRAG_LLM_API_KEY", "YOUR_API_KEY")
     api_key_embedding = os.environ.get("GRAPHRAG_EMBEDDING_API_KEY", api_key)
-    api_base = os.environ.get("GRAPHRAG_API_BASE", "https://api.openai.com/v1")
+    api_base = os.environ.get("GRAPHRAG_LLM_API_BASE", "https://api.openai.com/v1")
     api_base_embedding = os.environ.get("GRAPHRAG_EMBEDDING_API_BASE", "https://api.openai.com/v1")
 
     # 获取模型名称
