@@ -98,7 +98,8 @@ class LocalQuestionGen(BaseQuestionGen):
             )
 
             return QuestionResult(
-                response=response.split("\n"),
+                # response=response.split("\n"),
+                response=response,
                 context_data={
                     "question_context": question_text,
                     **context_records,

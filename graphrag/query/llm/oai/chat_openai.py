@@ -98,7 +98,7 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
         streaming: bool = True,
         callbacks: list[BaseLLMCallback] | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> Any:
         """Generate text asynchronously."""
         try:
             retryer = AsyncRetrying(
@@ -128,7 +128,7 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
         streaming: bool = True,
         callbacks: list[BaseLLMCallback] | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> Any:
         model = self.model
         if not model:
             raise ValueError(_MODEL_REQUIRED_MSG)
@@ -139,6 +139,8 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
             **kwargs,
         )  # type: ignore
         if streaming:
+            return response
+
             full_response = ""
             usage = None
             while True:
@@ -185,6 +187,8 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
             **kwargs,
         )
         if streaming:
+            return response
+
             full_response = ""
             usage = None
             while True:
@@ -200,11 +204,14 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
                     )  # type: ignore
 
                     full_response += delta
+                    # print(delta)
                     if callbacks:
                         for callback in callbacks:
                             callback.on_llm_new_token(delta)
                     if chunk.choices[0].finish_reason == "stop":  # type: ignore
                         usage = chunk.usage
+                        # print("*" * 100)
+                        # print(chunk)
                         break
                 except StopIteration:
                     break
