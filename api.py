@@ -130,7 +130,7 @@ async def setup_llm_and_embedder():
         api_base=api_base,
         model=llm_model,
         api_type=OpenaiApiType.OpenAI,
-        max_retries=20,
+        max_retries=2,
     )
 
     # 初始化token编码器
@@ -144,7 +144,7 @@ async def setup_llm_and_embedder():
         api_type=OpenaiApiType.OpenAI,
         model=embedding_model,
         deployment_name=embedding_model,
-        max_retries=20,
+        max_retries=2,
     )
 
 
@@ -359,7 +359,7 @@ async def chat_completions(request: ChatCompletionRequest):
         logger.info(f"处理提示: {prompt}")
 
         # 根据模型选择使用不同的搜索方法
-        if "global-search" in request.model:
+        if "global" in request.model:
             result: SearchResult = await global_search_engine.asearch(prompt, streaming=request.stream)
         else:  # 默认使用本地搜索
             result: SearchResult = await local_search_engine.asearch(prompt, streaming=request.stream)
