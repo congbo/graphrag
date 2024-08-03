@@ -16,9 +16,51 @@
 - 我添加了实体或者关系等链接到输出中，你可以直接点击访问参考实体、关系、数据源或者报告。
 - 支持任意兼容OpenAI大模型桌面应用或者Web应用UI接入。
 
-![image](https://github.com/user-attachments/assets/0ea3abfb-677d-4535-b855-7ea49fd77ed2)
+![image](https://github.com/user-attachments/assets/c251d434-4925-4012-88e7-f3b2ff40471f)
+
 
 ![image](https://github.com/user-attachments/assets/ab7a8d2e-aeec-4a0c-afb9-97086b9c7b2a)
+
+# 如何安装How to install
+- 克隆本项目 Clone the repo
+```
+git clone https://github.com/KylinMountain/graphrag.git
+cd graphrag
+```
+- 建立虚拟环境 Create virtual env
+```
+conda create -n graphrag python=3.10
+conda activate graphrag
+```
+- 安装poetry Install poetry
+```
+curl -sSL https://install.python-poetry.org | python3 -
+```
+- 安装依赖 Install dependencies
+```
+poetry install
+pip install -r webserver/requirements.txt
+```
+- 初始化GraphRAG Initialize GraphRAG
+```
+poetry run poe index --init --root .
+```
+- 创建input文件夹 Create Input Foler
+- 配置settings.yaml Config settings.yaml
+按照GraphRAG官方配置文档配置 [GraphRAG Configuration](https://microsoft.github.io/graphrag/posts/config/json_yaml/)
+- 配置webserver Config webserver
+
+你可能需要配置以下设置，但默认即可支持本地运行。 You may need config the following item, but you can use the default param.
+```yaml
+    server_host: str = "http://localhost"
+    server_port: int = 20213
+    data: str = (
+        "./output"
+    )
+    lancedb_uri: str = (
+        "./lancedb"
+    )
+```
 
 # GraphRAG
 
