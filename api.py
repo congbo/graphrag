@@ -224,7 +224,7 @@ async def setup_search_engines(llm, token_encoder, text_embedder, entities, rela
     }
 
     local_llm_params = {
-        "max_tokens": 2_000,
+        "max_tokens": 500,
         "temperature": 0.0,
     }
 
@@ -234,7 +234,8 @@ async def setup_search_engines(llm, token_encoder, text_embedder, entities, rela
         token_encoder=token_encoder,
         llm_params=local_llm_params,
         context_builder_params=local_context_params,
-        response_type="multiple paragraphs",
+        # response_type="multiple paragraphs",
+        response_type="single paragraphs",
     )
 
     # 设置全局搜索引擎
@@ -278,7 +279,7 @@ async def setup_search_engines(llm, token_encoder, text_embedder, entities, rela
         allow_general_knowledge=False,
         json_mode=True,
         context_builder_params=global_context_builder_params,
-        concurrent_coroutines=32,
+        concurrent_coroutines=20,
         response_type="multiple paragraphs",
     )
 
