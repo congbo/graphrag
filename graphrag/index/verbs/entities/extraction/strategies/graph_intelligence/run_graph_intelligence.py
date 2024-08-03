@@ -49,7 +49,7 @@ async def run_extract_entities(
     args: StrategyConfig,
 ) -> EntityExtractionResult:
     """Run the entity extraction chain."""
-    encoding_name = args.get("encoding_name", "cl100k_base")
+    encoding_name = args.get("encoding_name", "o200k_base")
 
     # Chunking Arguments
     prechunked = args.get("prechunked", False)

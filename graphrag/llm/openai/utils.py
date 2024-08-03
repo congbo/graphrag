@@ -19,7 +19,7 @@ from openai import (
 
 from .openai_configuration import OpenAIConfiguration
 
-DEFAULT_ENCODING = "cl100k_base"
+DEFAULT_ENCODING = "o200k_base"
 
 _encoders: dict[str, tiktoken.Encoding] = {}
 
@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 
 def get_token_counter(config: OpenAIConfiguration) -> Callable[[str], int]:
     """Get a function that counts the number of tokens in a string."""
-    model = config.encoding_model or "cl100k_base"
+    model = config.encoding_model or "o200k_base"
     enc = _encoders.get(model)
     if enc is None:
         enc = tiktoken.get_encoding(model)

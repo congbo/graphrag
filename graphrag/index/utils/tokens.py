@@ -7,7 +7,8 @@ import logging
 
 import tiktoken
 
-DEFAULT_ENCODING_NAME = "cl100k_base"
+#DEFAULT_ENCODING_NAME = "cl100k_base"
+DEFAULT_ENCODING_NAME = "o200k_base"
 log = logging.getLogger(__name__)
 
 

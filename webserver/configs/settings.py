@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     embeddings: TextEmbeddingConfig
     global_search: GlobalSearchConfig
     local_search: LocalSearchConfig
-    encoding_model: str = "cl100k_base"
+    encoding_model: str = "o200k_base"
 
     def is_azure_client(self):
         return self.llm.type == LLMType.AzureOpenAIChat or settings.llm.type == LLMType.AzureOpenAI

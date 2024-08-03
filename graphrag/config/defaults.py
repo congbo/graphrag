@@ -16,7 +16,7 @@ from .enums import (
 )
 
 ASYNC_MODE = AsyncType.Threaded
-ENCODING_MODEL = "cl100k_base"
+ENCODING_MODEL = "o200k_base"
 #
 # LLM Parameters
 #

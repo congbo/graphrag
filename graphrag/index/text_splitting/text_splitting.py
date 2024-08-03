@@ -88,7 +88,7 @@ class TokenTextSplitter(TextSplitter):
 
     def __init__(
         self,
-        encoding_name: str = "cl100k_base",
+        encoding_name: str = "o200k_base",
         model_name: str | None = None,
         allowed_special: Literal["all"] | set[str] | None = None,
         disallowed_special: Literal["all"] | Collection[str] = "all",

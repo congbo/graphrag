@@ -12,7 +12,7 @@ import tiktoken
 def num_tokens(text: str, token_encoder: tiktoken.Encoding | None = None) -> int:
     """Return the number of tokens in the given text."""
     if token_encoder is None:
-        token_encoder = tiktoken.get_encoding("cl100k_base")
+        token_encoder = tiktoken.get_encoding("o200k_base")
     return len(token_encoder.encode(text))  # type: ignore
 
 
@@ -36,7 +36,7 @@ def chunk_text(
 ):
     """Chunk text by token length."""
     if token_encoder is None:
-        token_encoder = tiktoken.get_encoding("cl100k_base")
+        token_encoder = tiktoken.get_encoding("o200k_base")
     tokens = token_encoder.encode(text)  # type: ignore
     chunk_iterator = batched(iter(tokens), max_tokens)
     yield from (token_encoder.decode(list(chunk)) for chunk in chunk_iterator)

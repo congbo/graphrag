@@ -5,7 +5,7 @@
 import graphrag.config.defaults as defs
 
 INIT_YAML = f"""
-encoding_model: cl100k_base
+encoding_model: o200k_base
 skip_workflows: []
 llm:
   api_key: ${{GRAPHRAG_API_KEY}}

@@ -62,7 +62,7 @@ text_embedder = OpenAIEmbedding(
     request_timeout=settings.embeddings.llm.request_timeout,
 )
 
-token_encoder = tiktoken.get_encoding("cl100k_base")
+token_encoder = tiktoken.get_encoding("o200k_base")
 
 local_search: LocalSearch
 global_search: GlobalSearch
