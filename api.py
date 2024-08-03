@@ -357,7 +357,7 @@ async def chat_completions(request: ChatCompletionRequest):
 
     try:
         logger.info(f"收到聊天完成请求: {request}")
-        prompt = request.messages[-1].content
+        prompt = request.messages[-1].content.strip()
         history = request.messages[:-1]
         message_dicts = [message.dict() for message in history]
         conversation_history = ConversationHistory.from_list(message_dicts)
