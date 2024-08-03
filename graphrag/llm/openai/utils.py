@@ -106,6 +106,8 @@ def try_parse_json_object(input: str) -> tuple[str, dict]:
         .replace("\\n", " ")
         .replace("\n", " ")
         .replace("\r", "")
+        .replace("'{", "{")
+        .replace("}'", "}")
         .strip()
     )
 
