@@ -365,19 +365,21 @@ async def chat_completions(request: ChatCompletionRequest):
 
         # 根据模型选择使用不同的搜索方法
         if "global" in request.model:
-            result: SearchResult = await global_search_engine.asearch(prompt, conversation_history=conversation_history, streaming=request.stream)
+            # global search 的 _reduce_response 中写死的 streaming=True
+            result: SearchResult = await global_search_engine.asearch(prompt, conversation_history=conversation_history)
         else:  # 默认使用本地搜索
             result: SearchResult = await local_search_engine.asearch(prompt, conversation_history=conversation_history, streaming=request.stream)
 
-        stream = result.response
+        response = result.response
+
         # formatted_response = format_response(result.response)
-        formatted_response = stream
+        formatted_response = response
         logger.info(f"格式化的搜索结果: {formatted_response}")
 
         # 流式响应和非流式响应的处理保持不变
         if request.stream:
             async def _read_stream_response(stream_response):
-                async for part in stream:
+                async for part in response:
                     if token := part.choices[0].delta.content or "":
                         yield token
                 # for chunk in stream_response.iter_lines():
@@ -392,7 +394,7 @@ async def chat_completions(request: ChatCompletionRequest):
                 chunk_id = f"chatcmpl-{uuid.uuid4().hex}"
                 # lines = formatted_response.split('\n')
                 # for i, line in enumerate(lines):
-                async for part in stream:
+                async for part in response:
                     if token := part.choices[0].delta.content or "":
                         chunk = {
                             "id": chunk_id,
@@ -429,7 +431,7 @@ async def chat_completions(request: ChatCompletionRequest):
                 yield "data: [DONE]\n\n"
 
             return StreamingResponse(generate_stream(), media_type="text/event-stream")
-        else:
+        elif isinstance(formatted_response, str):
             response = ChatCompletionResponse(
                 model=request.model,
                 choices=[
@@ -447,10 +449,32 @@ async def chat_completions(request: ChatCompletionRequest):
             )
             logger.info(f"发送响应: {response}")
             return JSONResponse(content=response.dict())
+        else:
+            full_response = ""
+            usage = None
+            while True:
+                try:
+                    chunk = await response.__anext__()  # type: ignore
+                    if not chunk or not chunk.choices:
+                        continue
 
+                    delta = (
+                        chunk.choices[0].delta.content
+                        if chunk.choices[0].delta and chunk.choices[0].delta.content
+                        else ""
+                    )  # type: ignore
+
+                    full_response += delta
+                    if chunk.choices[0].finish_reason == "stop":  # type: ignore
+                        usage = chunk.usage
+                        break
+                except StopIteration:
+                    break
+            logger.info(f"发送响应: {full_response}")
+            return JSONResponse(content=full_response)
     except Exception as e:
-        raise e
-        logger.error(f"处理聊天完成时出错: {str(e)}")
+        # raise e
+        logger.exception("处理聊天完成时出错")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/v1/models")
