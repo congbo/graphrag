@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Union
 from contextlib import asynccontextmanager
+from openai import AsyncStream
 
 
 # GraphRAG 相关导入
@@ -280,7 +281,8 @@ async def setup_search_engines(llm, token_encoder, text_embedder, entities, rela
         json_mode=True,
         context_builder_params=global_context_builder_params,
         concurrent_coroutines=20,
-        response_type="multiple paragraphs",
+        # response_type="multiple paragraphs",
+        response_type="single paragraphs",
     )
 
     logger.info("搜索引擎设置完成")
@@ -431,7 +433,30 @@ async def chat_completions(request: ChatCompletionRequest):
                 yield "data: [DONE]\n\n"
 
             return StreamingResponse(generate_stream(), media_type="text/event-stream")
-        elif isinstance(formatted_response, str):
+        else:
+            if isinstance(formatted_response, AsyncStream):
+                full_response = ""
+                usage = None
+                while True:
+                    try:
+                        chunk = await response.__anext__()  # type: ignore
+                        if not chunk or not chunk.choices:
+                            continue
+
+                        delta = (
+                            chunk.choices[0].delta.content
+                            if chunk.choices[0].delta and chunk.choices[0].delta.content
+                            else ""
+                        )  # type: ignore
+
+                        full_response += delta
+                        if chunk.choices[0].finish_reason == "stop":  # type: ignore
+                            usage = chunk.usage
+                            break
+                    except StopIteration:
+                        break
+                formatted_response = full_response
+
             response = ChatCompletionResponse(
                 model=request.model,
                 choices=[
@@ -449,29 +474,6 @@ async def chat_completions(request: ChatCompletionRequest):
             )
             logger.info(f"发送响应: {response}")
             return JSONResponse(content=response.dict())
-        else:
-            full_response = ""
-            usage = None
-            while True:
-                try:
-                    chunk = await response.__anext__()  # type: ignore
-                    if not chunk or not chunk.choices:
-                        continue
-
-                    delta = (
-                        chunk.choices[0].delta.content
-                        if chunk.choices[0].delta and chunk.choices[0].delta.content
-                        else ""
-                    )  # type: ignore
-
-                    full_response += delta
-                    if chunk.choices[0].finish_reason == "stop":  # type: ignore
-                        usage = chunk.usage
-                        break
-                except StopIteration:
-                    break
-            logger.info(f"发送响应: {full_response}")
-            return JSONResponse(content=full_response)
     except Exception as e:
         # raise e
         logger.exception("处理聊天完成时出错")
