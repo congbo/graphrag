@@ -235,8 +235,8 @@ async def setup_search_engines(llm, token_encoder, text_embedder, entities, rela
         token_encoder=token_encoder,
         llm_params=local_llm_params,
         context_builder_params=local_context_params,
-        # response_type="multiple paragraphs",
-        response_type="single paragraphs",
+        response_type="multiple paragraphs",
+        # response_type="single paragraphs",
     )
 
     # 设置全局搜索引擎
