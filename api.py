@@ -281,8 +281,8 @@ async def setup_search_engines(llm, token_encoder, text_embedder, entities, rela
         json_mode=True,
         context_builder_params=global_context_builder_params,
         concurrent_coroutines=20,
-        # response_type="multiple paragraphs",
-        response_type="single paragraphs",
+        response_type="multiple paragraphs",
+        # response_type="single paragraphs",
     )
 
     logger.info("搜索引擎设置完成")
