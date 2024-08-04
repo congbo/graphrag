@@ -92,9 +92,15 @@ def get_completion_llm_args(
 def try_parse_json_object(input: str) -> tuple[str, dict]:
     """JSON cleaning and formatting utilities."""
     """sometime, the llm return a json string with some extra description, this function will clean it up."""
-    _pattern = r"\{(.*)\}"
-    _match = re.search(_pattern, input)
-    input = "{" + _match.group(1) + "}" if _match else input
+    # FIXME: 有 bug，下面的请求会只取出 points 内层的数据
+    # '{
+    #     "points": [
+    #         {"description": "我是一名虚拟助手，旨在提供信息和支持，帮助用户解答问题和获取所需的资料。", "score": 0}
+    #     ]
+    # }'
+    # _pattern = r"\{(.*)\}"
+    # _match = re.search(_pattern, input)
+    # input = "{" + _match.group(1) + "}" if _match else input
 
     """Clean up json string."""
     input = (
