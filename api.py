@@ -225,7 +225,7 @@ async def setup_search_engines(llm, token_encoder, text_embedder, entities, rela
     }
 
     local_llm_params = {
-        "max_tokens": 500,
+        "max_tokens": 2000,
         "temperature": 0.0,
     }
 
