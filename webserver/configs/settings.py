@@ -1,11 +1,12 @@
 import os
+from pathlib import Path
 
 import yaml
 from azure.identity import get_bearer_token_provider, DefaultAzureCredential
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 
-from graphrag.config import LLMParameters, TextEmbeddingConfig, LocalSearchConfig, GlobalSearchConfig, LLMType
+from graphrag.config import create_graphrag_config, GraphRagConfig, LLMParameters, TextEmbeddingConfig, LocalSearchConfig, GlobalSearchConfig, LLMType
 from graphrag.query.llm.oai import OpenaiApiType
 
 
@@ -43,27 +44,24 @@ class Settings(BaseSettings):
 
 
 def load_settings_from_yaml(file_path: str) -> Settings:
-    with open(file_path, 'r') as file:
-        config = yaml.safe_load(file)
-    llm_config = config['llm']
-    embeddings_config = config['embeddings']
-    global_search_config = config['global_search']
-    local_search_config = config['local_search']
-    encoding_model = config['encoding_model']
+    config = file_path
+    _root = Path(config)
+    settings_yaml = (
+        Path(config)
+        if config and Path(config).suffix in [".yaml", ".yml"]
+        else _root / "settings.yaml"
+    )
 
-    # Manually setting the API keys from environment variables if specified
-    load_dotenv()
-    llm_params = LLMParameters(**llm_config)
-    llm_params.api_key = os.environ.get("GRAPHRAG_API_KEY", llm_config['api_key'])
-    text_embedding = TextEmbeddingConfig(**embeddings_config)
-    text_embedding.llm.api_key = os.environ.get("GRAPHRAG_API_KEY", embeddings_config['llm']['api_key'])
+    with settings_yaml.open("rb") as file:
+        data = yaml.safe_load(file.read().decode(encoding="utf-8", errors="strict"))
+        parameters: GraphRagConfig = create_graphrag_config(data, "./")
 
     return Settings(
-        llm=llm_params,
-        embeddings=text_embedding,
-        global_search=GlobalSearchConfig(**global_search_config if global_search_config else {}),
-        local_search=LocalSearchConfig(**local_search_config if local_search_config else {}),
-        encoding_model=encoding_model
+        llm=parameters.llm,
+        embeddings=parameters.embeddings,
+        global_search=parameters.global_search,
+        local_search=parameters.local_search,
+        encoding_model=parameters.encoding_model
     )
 
 

@@ -247,8 +247,10 @@ async def chat_completions(request: gtypes.ChatCompletionRequest):
     request.model = get_latest_model(request.model)
 
     try:
-        history = request.messages[:-1]
-        conversation_history = ConversationHistory.from_list([message.dict() for message in history])
+        conversation_history = None
+        if len(request.messages) > 1:
+            history = request.messages[:-1]
+            conversation_history = ConversationHistory.from_list([message.dict() for message in history if message.role != "system"])
 
         if request.model.endswith("global"):
             search = await initialize_search(request, global_search, request.model)
@@ -274,7 +276,7 @@ async def get_advice_question(request: gtypes.ChatQuestionGen):
         question_gen.context_builder = local_context
     else:
         raise NotImplementedError(f"model {request.model} is not supported")
-    question_history = [message.content for message in request.messages if message.role == "user"]
+    question_history = [message.content.strip() for message in request.messages if message.role == "user"]
     candidate_questions = await question_gen.agenerate(
         question_history=question_history, context_data=None, question_count=5
     )
@@ -297,7 +299,16 @@ async def list_models():
         models.append(gtypes.Model(id=f"{dir}-local", object="model", created=1644752340, owned_by="graphrag"))
         models.append(gtypes.Model(id=f"{dir}-global", object="model", created=1644752340, owned_by="graphrag"))
 
+
     response = gtypes.ModelList(data=models)
+
+    current_time = int(time.time())
+    response.data.extend([
+        {"id": "EGPT-3.0-graph-local", "object": "model", "created": current_time - 100000,
+         "owned_by": "graphrag"},
+        {"id": "EGPT-3.0-graph-global", "object": "model", "created": current_time - 95000,
+         "owned_by": "graphrag"},
+    ])
     return response
 
 
@@ -331,7 +342,7 @@ async def switch_context(model: str):
 
 
 def get_latest_model(model: str):
-    if model in [consts.LATEST_MODEL_LOCAL, consts.LATEST_MODEL_GLOBAL]:
+    if "EGPT" in model or model in [consts.LATEST_MODEL_LOCAL, consts.LATEST_MODEL_GLOBAL]:
         latest_dir = utils.get_latest_subdir(settings.data)
         model = model.replace("GraphRAG-latest", latest_dir)
     return model

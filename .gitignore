@@ -67,7 +67,7 @@ ragtest/
 .ragtest/
 .pipelines
 .pipeline
-settings.yaml
+#settings.yaml
 output/
 input
 cache
