@@ -92,7 +92,6 @@ def get_completion_llm_args(
 def try_parse_json_object(input: str) -> tuple[str, dict]:
     """JSON cleaning and formatting utilities."""
     # Sometimes, the LLM returns a json string with some extra description, this function will clean it up.
-
     result = None
     try:
         # Try parse first
@@ -103,15 +102,9 @@ def try_parse_json_object(input: str) -> tuple[str, dict]:
     if result:
         return input, result
 
-    # FIXME: 有 bug，下面的请求会只取出 points 内层的数据
-    # '{
-    #     "points": [
-    #         {"description": "我是一名虚拟助手，旨在提供信息和支持，帮助用户解答问题和获取所需的资料。", "score": 0}
-    #     ]
-    # }'
-    _pattern = r"\{.*\}"
-    _match = re.search(_pattern, input, re.DOTALL)
-    input = _match.group(0) if _match else input
+    _pattern = r"\{(.*)\}"
+    _match = re.search(_pattern, input)
+    input = "{" + _match.group(1) + "}" if _match else input
 
     # Clean up json string.
     input = (
@@ -123,8 +116,6 @@ def try_parse_json_object(input: str) -> tuple[str, dict]:
         .replace("\\n", " ")
         .replace("\n", " ")
         .replace("\r", "")
-        .replace("'{", "{")
-        .replace("}'", "}")
         .strip()
     )
 
@@ -152,9 +143,6 @@ def try_parse_json_object(input: str) -> tuple[str, dict]:
                 return input, {}
             return input, result
     else:
-        if not isinstance(result, dict):
-            log.exception("not expected dict type. type=%s:", type(result))
-            return input, {}
         return input, result
 
 

@@ -10,8 +10,9 @@ from graphrag.query.llm.oai import OpenaiApiType
 
 
 class Settings(BaseSettings):
-    server_host: str = "http://localhost"
     server_port: int = 20213
+    website_address: str = f"http://127.0.0.1:{server_port}"
+    cors_allowed_origins: list = ["*"] # Edit the list to restrict access.
     data: str = (
         "./output"
     )

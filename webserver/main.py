@@ -10,14 +10,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from jinja2 import Template
 from openai.types import CompletionUsage
 from openai.types.chat import ChatCompletion, ChatCompletionMessage, ChatCompletionChunk
 from openai.types.chat.chat_completion_chunk import Choice, ChoiceDelta
 
-from graphrag.config import LLMType
 from graphrag.query.context_builder.conversation_history import ConversationHistory
-from graphrag.query.llm.oai import ChatOpenAI, OpenaiApiType, OpenAIEmbedding
+from graphrag.query.llm.oai import ChatOpenAI, OpenAIEmbedding
 from graphrag.query.question_gen.local_gen import LocalQuestionGen
 from graphrag.query.structured_search.base import SearchResult, BaseSearch
 from graphrag.query.structured_search.global_search.callbacks import GlobalSearchLLMCallback
@@ -27,8 +27,16 @@ from webserver import gtypes
 from webserver import search
 from webserver import utils
 from webserver.configs import settings
+from webserver.utils import consts
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.mount("/static", StaticFiles(directory="webserver/static"), name="static")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -236,6 +244,8 @@ async def chat_completions(request: gtypes.ChatCompletionRequest):
         logger.error("graphrag search engines is not initialized")
         raise HTTPException(status_code=500, detail="graphrag search engines is not initialized")
 
+    request.model = get_latest_model(request.model)
+
     try:
         history = request.messages[:-1]
         conversation_history = ConversationHistory.from_list([message.dict() for message in history])
@@ -257,6 +267,8 @@ async def chat_completions(request: gtypes.ChatCompletionRequest):
 
 @app.post("/v1/advice_questions", response_model=gtypes.QuestionGenResult)
 async def get_advice_question(request: gtypes.ChatQuestionGen):
+    request.model = get_latest_model(request.model)
+
     if request.model.endswith("local"):
         local_context = await switch_context(model=request.model)
         question_gen.context_builder = local_context
@@ -278,7 +290,9 @@ async def get_advice_question(request: gtypes.ChatQuestionGen):
 @app.get("/v1/models", response_model=gtypes.ModelList)
 async def list_models():
     dirs = utils.get_sorted_subdirs(settings.data)
-    models: list[gtypes.Model] = []
+    models: list[gtypes.Model] = [
+        gtypes.Model(id=consts.LATEST_MODEL_LOCAL, object="model", created=1644752340, owned_by="graphrag"),
+        gtypes.Model(id=consts.LATEST_MODEL_GLOBAL, object="model", created=1644752340, owned_by="graphrag")]
     for dir in dirs:
         models.append(gtypes.Model(id=f"{dir}-local", object="model", created=1644752340, owned_by="graphrag"))
         models.append(gtypes.Model(id=f"{dir}-global", object="model", created=1644752340, owned_by="graphrag"))
@@ -316,7 +330,14 @@ async def switch_context(model: str):
     return context_builder
 
 
+def get_latest_model(model: str):
+    if model in [consts.LATEST_MODEL_LOCAL, consts.LATEST_MODEL_GLOBAL]:
+        latest_dir = utils.get_latest_subdir(settings.data)
+        model = model.replace("GraphRAG-latest", latest_dir)
+    return model
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="localhost", port=settings.server_port)
+    uvicorn.run(app, port=settings.server_port)

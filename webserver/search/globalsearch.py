@@ -16,12 +16,12 @@ from webserver.utils import consts
 
 async def load_global_context(input_dir: str,
                               token_encoder: tiktoken.Encoding | None = None) -> GlobalContextBuilder:
-    entity_df = pd.read_parquet(f"{input_dir}/{consts.ENTITY_TABLE}.parquet")
-    report_df = pd.read_parquet(f"{input_dir}/{consts.COMMUNITY_REPORT_TABLE}.parquet")
-    entity_embedding_df = pd.read_parquet(f"{input_dir}/{consts.ENTITY_EMBEDDING_TABLE}.parquet")
+    final_nodes = pd.read_parquet(f"{input_dir}/{consts.ENTITY_TABLE}.parquet")
+    final_community_reports = pd.read_parquet(f"{input_dir}/{consts.COMMUNITY_REPORT_TABLE}.parquet")
+    final_entities = pd.read_parquet(f"{input_dir}/{consts.ENTITY_EMBEDDING_TABLE}.parquet")
 
-    reports = read_indexer_reports(report_df, entity_df, consts.COMMUNITY_LEVEL)
-    entities = read_indexer_entities(entity_df, entity_embedding_df, consts.COMMUNITY_LEVEL)
+    reports = read_indexer_reports(final_community_reports, final_nodes, consts.COMMUNITY_LEVEL)
+    entities = read_indexer_entities(final_nodes, final_entities, consts.COMMUNITY_LEVEL)
 
     context_builder = GlobalCommunityContext(
         community_reports=reports,
@@ -33,10 +33,8 @@ async def load_global_context(input_dir: str,
 
 async def build_global_search_engine(llm: BaseLLM, context_builder=None, callback: GlobalSearchLLMCallback = None,
                                      token_encoder: tiktoken.Encoding | None = None) -> GlobalSearch:
-
     context_builder_params = {
         "use_community_summary": False,
-        # False means using full community reports. True means using community short summaries.
         "shuffle_data": True,
         "include_community_rank": True,
         "min_community_rank": 0,
@@ -51,12 +49,16 @@ async def build_global_search_engine(llm: BaseLLM, context_builder=None, callbac
     map_llm_params = {
         "max_tokens": settings.global_search.map_max_tokens,
         "temperature": settings.global_search.temperature,
+        "top_p": settings.global_search.top_p,
+        "n": settings.global_search.n,
         "response_format": {"type": "json_object"},
     }
 
     reduce_llm_params = {
         "max_tokens": settings.global_search.reduce_max_tokens,
         "temperature": settings.global_search.temperature,
+        "top_p": settings.global_search.top_p,
+        "n": settings.global_search.n,
     }
 
     search_engine = GlobalSearch(
@@ -67,13 +69,12 @@ async def build_global_search_engine(llm: BaseLLM, context_builder=None, callbac
         map_llm_params=map_llm_params,
         reduce_llm_params=reduce_llm_params,
         allow_general_knowledge=False,
-        json_mode=True,  # set this to False if your LLM model does not support JSON mode.
+        json_mode=settings.llm.model_supports_json,  # set this to False if your LLM model does not support JSON mode.
         context_builder_params=context_builder_params,
-        concurrent_coroutines=32,
+        concurrent_coroutines=settings.global_search.concurrency,
         callbacks=[callback] if callback else None,
         # free form text describing the response type and format, can be anything,
         # e.g. prioritized list, single paragraph, multiple paragraphs, multiple-page report
         response_type="multiple paragraphs",
     )
     return search_engine
-
