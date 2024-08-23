@@ -4,6 +4,7 @@ import os
 import time
 import uuid
 from typing import Generator, Optional
+from pprint import pprint
 
 import tiktoken
 from fastapi import FastAPI, HTTPException
@@ -250,7 +251,10 @@ async def chat_completions(request: gtypes.ChatCompletionRequest):
         conversation_history = None
         if len(request.messages) > 1:
             history = request.messages[:-1]
+            # 忽略 system
             conversation_history = ConversationHistory.from_list([message.dict() for message in history if message.role != "system"])
+            question_history = [message.content.strip() for message in history if message.role != "system"]
+            pprint(question_history)
 
         if request.model.endswith("global"):
             search = await initialize_search(request, global_search, request.model)
