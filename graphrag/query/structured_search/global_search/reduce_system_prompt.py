@@ -23,15 +23,7 @@ Add sections and commentary to the response as appropriate for the length and fo
 
 The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
 
-The response should also preserve all the data references previously included in the analysts' reports, but do not mention the roles of multiple analysts in the analysis process.
-
-**Do not list more than 5 record ids in a single reference**. Instead, list the top 5 most relevant record ids and add "+more" to indicate that there are more.
-
-For example:
-
-"Person X is the owner of Company Y and subject to many allegations of wrongdoing [^Data:Reports(2)][^Data:Reports(7)][^Data:Reports(34)][^Data:Reports(46)][^Data:Reports(64,+more)]. He is also CEO of company X [^Data:Reports(1)][^Data:Reports(3)]"
-
-where 1, 2, 3, 7, 34, 46, and 64 represent the id (not the index) of the relevant data record.
+The response should not preserve all the data references previously included in the analysts' reports, do not mention the roles of multiple analysts in the analysis process..
 
 Do not include information where the supporting evidence for it is not provided.
 
@@ -58,15 +50,7 @@ The final response should remove all irrelevant information from the analysts' r
 
 The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
 
-The response should also preserve all the data references previously included in the analysts' reports, but do not mention the roles of multiple analysts in the analysis process.
-
-**Do not list more than 5 record ids in a single reference**. Instead, list the top 5 most relevant record ids and add "+more" to indicate that there are more.
-
-For example:
-
-"Person X is the owner of Company Y and subject to many allegations of wrongdoing [^Data:Reports(2)][^Data:Reports(7)][^Data:Reports(34)][^Data:Reports(46)][^Data:Reports(64,+more)]. He is also CEO of company X [^Data:Reports(1)][^Data:Reports(3)]"
-
-where 1, 2, 3, 7, 34, 46, and 64 represent the id (not the index) of the relevant data record.
+The response should not preserve all the data references previously included in the analysts' reports, do not mention the roles of multiple analysts in the analysis process..
 
 Do not include information where the supporting evidence for it is not provided.
 
