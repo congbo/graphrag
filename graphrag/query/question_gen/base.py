@@ -20,8 +20,7 @@ from graphrag.query.llm.base import BaseLLM
 class QuestionResult:
     """A Structured Question Result."""
 
-    # response: list[str]
-    response: Any
+    response: list[str]
     context_data: str | dict[str, Any]
     completion_time: float
     llm_calls: int
