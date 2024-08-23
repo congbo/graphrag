@@ -344,7 +344,10 @@ async def switch_context(model: str):
 def get_latest_model(model: str):
     if "EGPT" in model or model in [consts.LATEST_MODEL_LOCAL, consts.LATEST_MODEL_GLOBAL]:
         latest_dir = utils.get_latest_subdir(settings.data)
-        model = model.replace("GraphRAG-latest", latest_dir)
+        if "EGPT" in model:
+            model = model.replace("EGPT-3.0-graph", latest_dir)
+        else:
+            model = model.replace("GraphRAG-latest", latest_dir)
     return model
 
 
